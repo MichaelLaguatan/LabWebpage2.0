@@ -1,0 +1,5 @@
+.venv
+__pycache__
+app.db
+temperature_history.csv
+migrations

@@ -1,0 +1,45 @@
+{% extends "base.jinja2" %}
+
+{% block content %}
+<div class="wrap container-fluid">
+  <form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      {{ form.name.label }}
+      {{ form.name(class_='form-control' + (' is-invalid' if form.name.errors else ''), size=60, autocomplete='off') }}
+      {% for error in form.name.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-group">
+      {{ form.mgmt_ip.label }}
+      {{ form.mgmt_ip(class_='form-control' + (' is-invalid' if form.mgmt_ip.errors else ''),size=45, autocomplete='off') }}
+      {% for error in form.mgmt_ip.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-group">
+      {{ form.oobm_ip.label }}
+      {{ form.oobm_ip(class_='form-control' + (' is-invalid' if form.oobm_ip.errors else ''),size=45, autocomplete='off') }}
+      {% for error in form.oobm_ip.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-group">
+      {{ form.stream_1_ip.label }}
+      {{ form.stream_1_ip(class_='form-control' + (' is-invalid' if form.stream_1_ip.errors else ''),size=45, autocomplete='off') }}
+      {% for error in form.stream_1_ip.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-group">
+      {{ form.stream_2_ip.label }}
+      {{ form.stream_2_ip(class_='form-control' + (' is-invalid' if form.stream_2_ip.errors else ''),size=45, autocomplete='off') }}
+      {% for error in form.stream_2_ip.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-group">{{ form.submit(class_="form-control btn btn-outline-light") }}</div>
+  </form>
+</div>
+{% endblock %}

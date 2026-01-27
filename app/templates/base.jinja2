@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Denver Lab Webpage</title>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if title == "Lab Temperature Graph" %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
+  {% endif %}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/style.css') }}" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+
+<body>
+  <nav class="navbar topnav">
+      {% if title == "Denver Lab Webpage" %}
+        <div id="buttons">
+          <a class="btn btn-outline-light navbar-btn" href="https://ateme.assetsonar.com/dashboard" target="_blank">Reserve Lab Hardware</a>
+          {% if current_user.is_anonymous %}
+            <a class="btn btn-outline-light navbar-btn" href="{{ url_for('auth.login') }}">Login</a>
+          {% else %}
+            <a class="btn btn-outline-light navbar-btn" href="{{ url_for('auth.logout') }}">Logout</a>
+            <a class="btn btn-outline-light navbar-btn" href="/add_rack" style="text-decoration:none; color:white;">Add Rack</a>
+          {% endif %}
+        </div>
+      {% else %}
+        <div id="buttons">
+          <a class="btn btn-outline-light navbar-btn" href="{{ url_for('main.index') }}">Back</a>
+        </div>
+      {% endif %}
+      <span class="title">{{ title }}</span>
+      <a href="/lab_temp_graph" id="labTempLink" style="color: white; text-decoration: underline; cursor: pointer;">Lab Temperature: <span id="labTemp">--°F</span></a>
+    </nav>
+  {% block content %}{% endblock %}
+  <!--JavaScript Source-->
+  <script type="module" src="{{ url_for('static', filename='javascript/scripts.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+<script>
+  async function updateTemp() {
+    try {
+      const res = await fetch("/api/temperature");
+      const data = await res.json();
+      if (data.temp_f) {
+        document.getElementById('labTemp').innerText = `${data.temp_f}°F`;
+      } else {
+        document.getElementById('labTemp').innerText = `--°F`;
+      }
+    } catch (e) {
+      document.getElementById('labTemp').innerText = `--°F`;
+    }
+  }
+
+  updateTemp(); // call on load
+  setInterval(updateTemp, 60 * 1000); // update every 60s
+</script>
+
+</html>

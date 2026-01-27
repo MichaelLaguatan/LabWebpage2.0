@@ -1,0 +1,2 @@
+FLASK_APP=labWebPage.py
+FLASK_DEBUG=1

@@ -1,0 +1,268 @@
+{% extends "base.jinja2" %}
+
+{% block content %}
+<div class="wrap container-fluid">
+  <form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      {{ form.name.label }}
+      {{ form.name(class_='form-control' + (' is-invalid' if form.name.errors else ''), size=60, autocomplete='off') }}
+      {% for error in form.name.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-group">
+      {{ form.category.label }}
+      {{ form.category(class_="form-select") }}
+    </div>
+    <div class="form-group">
+      {{ form.vendor.label }}
+      {{ form.vendor(class_="form-select", id_="vendor") }}
+      <div class="form-text text-light" id="other-warning">Power on, monday on, and friday off options are only supported on Dell and HP</div>
+    </div>
+    <div class="form-group">
+      {{ form.serial_number.label }}
+      {{ form.serial_number(class_="form-control", autocomplete='off') }}
+    </div>
+    <div class="form-group">
+      {{ form.product_number.label }}
+      {{ form.product_number(class_="form-control", autocomplete='off') }}
+    </div>
+    <div class="form-group">
+      {{ form.login.label }}
+      {{ form.login(class_="form-control", autocomplete='off') }}
+    </div>
+    <div id="ipFields"><hr style="color: white">
+      {% for field in form.ips.entries %}
+        <div class="ipField">
+          <div class="form-group">
+            {{ field.ip_name.label }}
+            {{ field.ip_name(class_="form-control", autocomplete='off') }}
+          </div>
+          <div class="form-group">
+            {{ field.category.label }}
+            {{ field.category(class_="form-select") }}
+          </div>
+          <div class="form-group">
+            {{ field.ip.label }}
+            {{ field.ip(class_='form-control' + (' is-invalid' if field.ip.errors else ''), autocomplete='off') }}
+            {% for error in field.ip.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+          <div class="form-group">
+            {{ field.deleted() }}
+          </div>
+          <button type="button" class="btn btn-outline-danger" onclick="deleteRow(this)" style="margin-top: 5px;">Delete IP</button>
+        <hr style="color: white">
+        </div>
+      {% endfor %}
+    </div>
+    <div class="form-text">
+      <a class="btn btn-outline-light" href="#" onclick="addRow()">Add another</a>
+    </div>
+    <div class="form-group">
+      {{ form.top_unit.label }}
+      {{ form.top_unit(class_='form-control' + (' is-invalid' if form.top_unit.errors else ''), autocomplete='off') }}
+      {% for error in form.top_unit.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-group">
+      {{ form.bottom_unit.label }}
+      {{ form.bottom_unit(class_='form-control' + (' is-invalid' if form.bottom_unit.errors else ''), autocomplete='off') }}
+      {% for error in form.bottom_unit.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="form-check form-switch">
+      {{ form.power_button.label }}
+      {{ form.power_button(class_="form-check-input", role_="switch", id_="power-button") }}
+    </div>
+    <div class="form-check form-switch">
+      {{ form.monday_on.label }}
+      {{ form.monday_on(class_="form-check-input", role_="switch", id_="monday-on") }}
+    </div>
+    <div class="form-check form-switch">
+      {{ form.friday_off.label }}
+      {{ form.friday_off(class_="form-check-input", role_="switch", id_="friday-off") }}
+    </div>
+    <div class="form-group" id="power-button-ip">
+      {{ form.power_button_ip.label }}
+      {{ form.power_button_ip(class_='form-control' + (' is-invalid' if form.power_button_ip.errors else ''), id_="power-button-ip-input", autocomplete='off') }}
+      {% for error in form.power_button_ip.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+      <div class="form-text text-light" id="power-warning">Power on, monday on, and friday off options require a power IP, usually the OOBM IP</div>
+    </div>
+    <div class="form-group">
+      {{ form.rack_name() }}{{ form.old_server_name() }}
+    </div>
+    <div class="form-group">{{ form.submit(class_="form-control btn btn-outline-light") }}</div>
+  </form>
+
+  <div class="rack align-middle">
+    <div class="header">
+      <p>{{ rack.name }}</p><hr>
+      <p>
+        Management: {{ rack.mgmt_ip }}<br />
+        OOBM: {{ rack.oobm_ip }}<br />
+        Streaming 1: {{ rack.stream_1_ip }}<br />
+        Streaming 2: {{ rack.stream_2_ip }}
+      </p>
+    </div>
+    <table class="table table-bordered table-sm align-middle">
+      <thead>
+        <tr>
+          <th class="align-middle" scope="col">RU</th>
+          <th class="align-middle" scope="col">Front of Rack</th>
+          <th class="align-middle" scope="col">Power Status</th>
+          <th class="align-middle" scope="col">Monday On</th>
+          <th class="align-middle" scope="col">Friday Off</th>
+        </tr>
+      </thead>
+      {% if servers is not none %}
+        {% for server in rack.display_servers %}
+          {% if server.name == 'BLANK' %}
+            <tbody>
+              <td scope="row">{{ server.top_unit }}</td>
+              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="BLANK">{{ server.name }}</td>
+              <td class="powerState" rowspan="{{ server.top_unit - server.bottom_unit + 1 }}"></td>
+              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="powerSave"></td>
+              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}"></td>
+              {% for i in range(server.top_unit - server.bottom_unit) %}
+                <tr><td scope="row">{{ server.top_unit - i - 1 }}</td></tr>
+              {% endfor %}
+            </tbody>
+          {% else %}
+            <tbody>
+                  <td scope="row">{{ server.top_unit }}</td>
+                  <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="{{ server.category.name }}">
+                    <p>{{ server.name }}</p>
+                  </td>
+                  <td class="powerState" rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" id="{{ server.power_button_ip }}">
+                    {% if server.power_button %}
+                      <input type="image" src="{{ url_for('static', filename='images/poweron.png') }}" class="powerButton" />
+                    {% endif %}
+                  </td>
+              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="powerSave">
+                {% if server.monday_on %}
+                  &#10004;
+                {% endif %}
+              </td>
+              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}">
+                {% if server.friday_off %}
+                  &#10004;
+                {% endif %}
+              </td>
+              {% for i in range(server.top_unit - server.bottom_unit) %}
+                <tr><td scope="row">{{ server.top_unit - i - 1 }}</td></tr>
+              {% endfor %}
+            </tbody>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    </table>
+  </div>
+</div>
+<script>
+  function addRow() {
+    const container = document.getElementById('ipFields');
+    const rows = container.querySelectorAll('.ipField');
+    const newIndex = rows.length + 1;
+
+    // Clone the LAST row (not always index 0)
+    const template = rows[0];
+    const newRow = template.cloneNode(true);
+
+    // Update all inputs/selects inside the row
+    newRow.querySelectorAll('input, select').forEach(el => {
+      if (el.name) {
+        el.name = el.name.replace(/\d+/, String(newIndex));
+        el.id   = el.id.replace(/\d+/, String(newIndex));
+      }
+      if (el.name.endsWith('-deleted')) {
+        el.value = '0';
+      } else if (el.name.endsWith('-category')){
+        el.value = 'MANAGEMENT';
+      } else {
+        el.value = '';
+      }
+  });
+
+  newRow.style.display = '';
+  container.appendChild(newRow);
+  return;
+}
+
+function deleteRow(button) {
+  const row = button.closest('.ipField');
+  const ipField = row.querySelector('input[name$="-ip"]')
+  const deleteField = row.querySelector('input[name$="-deleted"]');
+  ipField.remove();
+  deleteField.value = '1';
+  row.style.display = 'none';
+  return;
+}
+
+function toggleVendorWarning() {
+  const vendor = document.getElementById('vendor');
+  const otherWarning = document.getElementById('other-warning');
+  const powerWarning = document.getElementById('power-warning');
+  const power_button = document.getElementById('power-button');
+  const ip = document.getElementById('power-button-ip');
+  const ipInput = document.getElementById('power-button-ip-input');
+  const monday_on = document.getElementById('monday-on');
+  const friday_off = document.getElementById('friday-off');
+  if (vendor.value == 'OTHER') {
+    otherWarning.style.display = 'block';
+    powerWarning.style.display = 'none';
+    ipInput.value = '';
+    ipInput.disabled = true;
+    power_button.disabled = true;
+    power_button.checked = false;
+    monday_on.disabled = true;
+    monday_on.checked = false;
+    friday_off.disabled = true;
+    friday_off.checked = false;
+  } else {
+    otherWarning.style.display = 'none';
+    ipInput.disabled = false;
+    power_button.disabled = false;
+    monday_on.disabled = false;
+    friday_off.disabled = false;
+  }
+}
+
+function togglePowerWarning() {
+  const warning = document.getElementById('power-warning');
+  const power_button = document.getElementById('power-button');
+  const ip = document.getElementById('power-button-ip');
+  const ipInput = document.getElementById('power-button-ip-input');
+  const monday_on = document.getElementById('monday-on');
+  const friday_off = document.getElementById('friday-off');
+  if (ipInput.value.trim() == '' && (power_button.checked || monday_on.checked || friday_off.checked)) {
+    warning.style.display = 'block';
+  } else {
+    warning.style.display = 'none';
+  }
+  
+}
+document.getElementById('vendor').addEventListener("change", toggleVendorWarning);
+document.addEventListener('DOMContentLoaded', () => {
+  const inputs = [
+    document.getElementById('power-button'),
+    document.getElementById('monday-on'),
+    document.getElementById('friday-off'),
+    document.getElementById('power-button-ip-input')
+  ];
+
+  inputs.forEach(input => {
+    input.addEventListener('change', togglePowerWarning);
+    input.addEventListener('input', togglePowerWarning); // for text input typing
+  });
+});
+toggleVendorWarning();
+togglePowerWarning();
+</script>
+{% endblock %}

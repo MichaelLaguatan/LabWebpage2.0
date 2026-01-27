@@ -1,0 +1,183 @@
+{% extends "base.jinja2" %}
+
+{% block content %}
+<div id="main-content">
+  <button id="resetZoomBtn" class="btn btn-secondary">Reset Zoom</button>
+  <div id="chart-container">
+    <canvas id="tempChart" style="display: block"></canvas>
+  </div>
+</div>
+<script>
+  // Force Luxon to use Denver time zone with DST handling
+  if (window.luxon && window.luxon.Settings) {
+    window.luxon.Settings.defaultZone = 'America/Denver';
+  }
+
+  // Register plugins explicitly to avoid silent no-ops
+  if (window.ChartAnnotation) {
+    Chart.register(window.ChartAnnotation);
+  }
+  if (window.ChartZoom) {
+    Chart.register(window.ChartZoom);
+  }
+
+  function parseLabelToMillis(label) {
+    if (!label) return null;
+    // Try "YYYY-MM-DD HH:mm" (backend current format)
+    let dt = luxon.DateTime.fromFormat(label, 'yyyy-LL-dd HH:mm', { zone: 'America/Denver' });
+    if (dt.isValid) return dt.toMillis();
+    // Try ISO (with or without Z)
+    dt = luxon.DateTime.fromISO(label.endsWith('Z') ? label : label + 'Z', { setZone: true });
+    if (dt.isValid) return dt.toMillis();
+    // Fallback to Date
+    const t = Date.parse(label);
+    return Number.isFinite(t) ? t : null;
+  }
+
+  // Fetch real data from Flask backend
+  fetch('api/get_temperature_history')
+    .then(res => res.json())
+    .then(json => {
+      console.log('API response sample:', {
+        labels0: json.labels && json.labels[0],
+        labelsLen: json.labels && json.labels.length,
+        data0: json.data && json.data[0],
+        dataLen: json.data && json.data.length
+      });
+      const points = json.labels.map((label, i) => {
+        const ms = parseLabelToMillis(label);
+        return ms !== null ? { x: ms, y: json.data[i] } : null;
+      }).filter(Boolean)
+        .sort((a, b) => a.x - b.x);
+      console.log('Points parsed:', points.length, 'sample:', points.slice(0, 3));
+      renderChart(points);
+    })
+    .catch(err => {
+      console.error('Failed to fetch or parse data:', err);
+    });
+
+  let tempChartInstance = null;
+
+  function renderChart(dataPoints) {
+    try {
+        tempChartInstance = new Chart(document.getElementById('tempChart'), {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: 'Temperature (°F)',
+            data: dataPoints,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.1,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          normalized: true,
+          spanGaps: true,
+          scales: {
+            x: {
+              type: 'time',
+              display: true,
+              time: {
+                tooltipFormat: 'MMM dd, yyyy HH:mm',
+                displayFormats: { day: 'MMM dd', hour: 'HH:mm' }
+              },
+              title: { display: true, text: 'Time (America/Denver)', color: '#fff' },
+              ticks: {
+                color: '#eee',
+                maxRotation: 0,
+                autoSkip: true,
+                autoSkipPadding: 16,
+                major: { enabled: true },
+                callback: function(value, index, ticks) {
+                  const tick = ticks[index];
+                  const ms = tick && typeof tick.value === 'number' ? tick.value : Date.parse(value);
+                  const dt = luxon.DateTime.fromMillis(ms, { zone: 'America/Denver' });
+                  if (!dt.isValid) return '';
+                  return tick && tick.major ? dt.toFormat('MMM dd') : dt.toFormat('HH:mm');
+                }
+              },
+              grid: { color: 'rgba(255,255,255,0.1)' }
+            },
+            y: {
+              display: true,
+              title: { display: true, text: 'Temperature (°F)', color: '#fff' },
+              min: 60,
+              max: 90,
+              ticks: { color: '#eee' },
+              grid: { color: 'rgba(255,255,255,0.1)' }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              onClick: (e) => {},
+              labels: {
+                font: {
+                  size: 16,
+                  family: 'Arial'
+                }
+              }
+            },
+            title: {
+              display: true,
+              text: 'Denver Lab Temperature',
+              color: '#fff',
+              font: {
+                size: 16
+              }
+            },
+            annotation: {
+              annotations: {
+                limitLine: {
+                  type: 'line',
+                  yMin: {{ temp_limit }},
+                  yMax: {{ temp_limit }},
+                  borderColor: 'red',
+                  borderWidth: 2,
+                  borderDash: [6, 6],
+                  label: {
+                    display: true,
+                    content: '{{ temp_limit }}°F limit',
+                    position: 'end',
+                    backgroundColor: 'rgba(51,51,51,0.8)',
+                    color: '#fff',
+                    font: { weight: 'bold' }
+                  }
+                }
+              }
+            },
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: 'xy',
+              },
+              zoom: {
+                wheel: { enabled: true },
+                pinch: { enabled: true },
+                mode: 'xy'
+              },
+              limits: {
+                y: { min: 0, max: 90 }
+              }
+            }
+          }
+        }
+      });
+    } catch (e) {
+      console.error('Chart render failed:', e);
+    }
+  }
+
+  document.getElementById('resetZoomBtn').addEventListener('click', () => {
+    if (tempChartInstance) {
+      tempChartInstance.resetZoom();
+    }
+  });
+</script>
+{% endblock %}
