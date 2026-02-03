@@ -59,7 +59,7 @@ window.onclick = function (event) {
 
 window.powerOn = function powerOn(serverName, ip) {
   var req = new XMLHttpRequest();
-  var url = `/api/power_on/${ip}?server_name=${serverName}`;
+  var url = `/api/power_on/${ip}?server_name=${encodeURIComponent(serverName)}`;
   req.open("POST",url,true);
   req.send();
 

@@ -14,7 +14,7 @@ class IPForm(FlaskForm):
   deleted = HiddenField(default='0')
 
 class ServerForm(FlaskForm):
-  name = StringField('Server Name', validators=[DataRequired('Please input a name for the server'), Regexp(r"^[a-zA-Z0-9_\-'/() ]+$", message='Name must contain only letters, numbers, underscores, dashes, single quotes, forward slashes, parentheses, and spaces')])
+  name = StringField('Server Name', validators=[DataRequired('Please input a name for the server'), Regexp(r"^[a-zA-Z0-9_\-'/()& ]+$", message='Name must contain only letters, numbers, underscores, dashes, single quotes, forward slashes, parentheses, and spaces')])
   category = SelectField('Category', choices=[('UTILITY', 'Utility'), ('TITAN', 'Titan'), ('KUBE', 'Kubernetes'), ('VM', 'Virtual Machine'), ('GRAY', 'Gray')], default='UTILITY')
   vendor = SelectField('Vendor', choices=[('DELL', 'Dell'), ('HP', 'HP'), ('OTHER', 'Other')], default='Other')
   serial_number = StringField('Serial Number')
