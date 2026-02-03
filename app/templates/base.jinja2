@@ -36,7 +36,10 @@
         </div>
       {% endif %}
       <span class="title">{{ title }}</span>
-      <a href="/lab_temp_graph" id="labTempLink" style="color: white; text-decoration: underline; cursor: pointer;">Lab Temperature: <span id="labTemp">--°F</span></a>
+      <div id="links">
+        <a href="/lab_ip_list" style="color: white; text-decoration: underline; cursor: pointer;">Lab IP List</a>
+        <a href="/lab_temp_graph" id="labTempLink" style="color: white; text-decoration: underline; cursor: pointer;">Lab Temperature: <span id="labTemp">--°F</span></a>
+      </div>
     </nav>
   {% block content %}{% endblock %}
   <!--JavaScript Source-->

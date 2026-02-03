@@ -31,12 +31,13 @@ nav .title {
   font-weight: bold;
 }
 
-nav a {
+nav #links {
   display: flex;
   align-items: center;
   color: white;
   text-decoration: underline;
   cursor: pointer;
+  gap: 20px;
 }
 
 #labTemp {

@@ -29,6 +29,12 @@ def index():
 def lab_temp_graph():
   return render_template('lab_temp_graph.jinja2', title='Lab Temperature Graph', temp_limit=current_app.config['TEMPERATURE_LIMIT'])
 
+@bp.route('/lab_ip_list')
+def lab_ip_list():
+  db_racks = db.session.scalars(sa.select(Rack)).unique().all()
+  db_racks.sort(key=lambda rack: rack.name)
+  return render_template('lab_ip_list.jinja2', title='Lab IP List', db_racks=db_racks)
+
 '''
 RACK STUFF
 '''

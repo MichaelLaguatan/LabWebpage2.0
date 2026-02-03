@@ -1,0 +1,46 @@
+{% extends "base.jinja2" %}
+
+{% block content %}
+  <div class="wrap">
+    {% for rack in db_racks %}
+      <div class="rack">
+        <div class="header">
+          <p>{{ rack.name }}</p>
+          <hr>
+          <p>
+            Management: {{ rack.mgmt_ip }}<br />
+            OOBM: {{ rack.oobm_ip }}<br />
+            Streaming 1: {{ rack.stream_1_ip }}<br />
+            Streaming 2: {{ rack.stream_2_ip }}
+          </p>
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="rack">
+      <div class="header">
+        <p>Rack E</p>
+        <hr>
+        <p>
+          Management: <br />
+          OOBM: <br />
+          Streaming 1: <br />
+          Streaming 2: 
+        </p>
+      </div>
+    </div>
+
+    <div class="rack">
+      <div class="header">
+        <p>Rack F</p>
+        <hr>
+        <p>
+          Management: <br />
+          OOBM: <br />
+          Streaming 1: <br />
+          Streaming 2: 
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
