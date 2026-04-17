@@ -56,51 +56,53 @@
             <th scope="col" id="symbol"><span>Friday Off</span></th>
           </tr>
         </thead>
-        {% for server in rack.display_servers %}
-          {% if server.name == 'BLANK' %}
-            <tbody>
-              <td scope="row">{{ server.top_unit }}</td>
-              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="BLANK">{{ server.name }}</td>
-              <td class="powerState" rowspan="{{ server.top_unit - server.bottom_unit + 1 }}"></td>
-              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="powerSave"></td>
-              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}"></td>
+        <tbody>
+          {% for server in rack.display_servers %}
+            {% if server.name == 'BLANK' %}
+              <tr>
+                <td scope="row">{{ server.top_unit }}</td>
+                <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="BLANK">{{ server.name }}</td>
+                <td class="powerState" rowspan="{{ server.top_unit - server.bottom_unit + 1 }}"></td>
+                <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="powerSave"></td>
+                <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}"></td>
+              </tr>
+                {% for i in range(server.top_unit - server.bottom_unit) %}
+                  <tr><td scope="row">{{ server.top_unit - i - 1 }}</td></tr>
+                {% endfor %}
+            {% else %}
+              <tr>
+                <td scope="row">{{ server.top_unit }}</td>
+                <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="{{ server.category.name }}">
+                  <p onclick="showModal(&quot;{{ server.name }}&quot;)" style="cursor: pointer;">{{ server.name }}</p>
+                  {% if not current_user.is_anonymous %}
+                    <div class="d-flex gap-2">
+                      <a class="btn btn-outline-light" href="{{ url_for('main.edit_server', rack_name=rack.name, server_name=server.name) }}">Edit</a>
+                      <a class="btn btn-outline-danger" href="{{ url_for('main.delete_server', rack_name=rack.name, server_name=server.name) }}">Delete</a>
+                    </div>
+                  {% endif %}
+                </td>
+                <td class="powerState" rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" id="{{ server.power_button_ip }}">
+                  {% if server.power_button %}
+                    <input type="image" src="{{ url_for('static', filename='images/poweron.png') }}" class="powerButton" onclick="powerOn('{{ server.name }}', '{{ server.power_button_ip }}')" />
+                  {% endif %}
+                </td>
+                <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="powerSave">
+                  {% if server.monday_on %}
+                    &#10004;
+                  {% endif %}
+                </td>
+                <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}">
+                  {% if server.friday_off %}
+                    &#10004;
+                  {% endif %}
+                </td>
+              </tr>
               {% for i in range(server.top_unit - server.bottom_unit) %}
                 <tr><td scope="row">{{ server.top_unit - i - 1 }}</td></tr>
               {% endfor %}
-            </tbody>
-          {% else %}
-            <tbody>
-              <td scope="row">{{ server.top_unit }}</td>
-              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="{{ server.category.name }}">
-                <p onclick="showModal(&quot;{{ server.name }}&quot;)" style="cursor: pointer;">{{ server.name }}</p>
-                {% if not current_user.is_anonymous %}
-                  <div class="d-flex gap-2">
-                    <a class="btn btn-outline-light" href="{{ url_for('main.edit_server', rack_name=rack.name, server_name=server.name) }}">Edit</a>
-                    <a class="btn btn-outline-danger" href="{{ url_for('main.delete_server', rack_name=rack.name, server_name=server.name) }}">Delete</a>
-                  </div>
-                {% endif %}
-              </td>
-              <td class="powerState" rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" id="{{ server.power_button_ip }}">
-                {% if server.power_button %}
-                  <input type="image" src="{{ url_for('static', filename='images/poweron.png') }}" class="powerButton" onclick="powerOn('{{ server.name }}', '{{ server.power_button_ip }}')" />
-                {% endif %}
-              </td>
-              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}" class="powerSave">
-                {% if server.monday_on %}
-                  &#10004;
-                {% endif %}
-              </td>
-              <td rowspan="{{ server.top_unit - server.bottom_unit + 1 }}">
-                {% if server.friday_off %}
-                  &#10004;
-                {% endif %}
-              </td>
-              {% for i in range(server.top_unit - server.bottom_unit) %}
-                <tr><td scope="row">{{ server.top_unit - i - 1 }}</td></tr>
-              {% endfor %}
-            </tbody>
-          {% endif %}
-        {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </tbody>
       </table>
     </div>
   {% endfor %}

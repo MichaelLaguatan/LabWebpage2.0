@@ -32,7 +32,7 @@ def power_on():
     servers = db.session.scalars(sa.select(Server).where(Server.vendor.in_(["DELL", "HP"]), Server.monday_on == True))
     session = requests.Session()
     session.verify = False
-    session.auth = ('', '')
+    session.auth = ('idrac_username', 'idrac_password')
     payload = {'ResetType': 'On'}
     with ThreadPoolExecutor(max_workers=20) as pool:
       for server in servers:
@@ -44,7 +44,7 @@ def shutdown():
     servers = db.session.scalars(sa.select(Server).where(Server.vendor.in_(["DELL", "HP"]), Server.friday_off == True))
     session = requests.Session()
     session.verify = False
-    session.auth = ('', '')
+    session.auth = ('idrac_username', 'idrac_password')
     payload = {'ResetType': 'GracefulShutdown'}
     with ThreadPoolExecutor(max_workers=20) as pool:
       for server in servers:
@@ -63,10 +63,10 @@ def get_current_temperature():
   try:
       iterator = getCmd(
           SnmpEngine(),
-          UsmUserData(userName="", authKey="", privKey="", authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb128Protocol),
-          UdpTransportTarget(("", 161), timeout=1, retries=3),
+          UsmUserData(userName="apcuser", authKey="apcuserauthpass", privKey="apcuserprivpass", authProtocol=usmHMACSHAAuthProtocol, privProtocol=usmAesCfb128Protocol),
+          UdpTransportTarget(("10.210.131.200", 161), timeout=1, retries=3),
           ContextData(),
-          ObjectType(ObjectIdentity(""))
+          ObjectType(ObjectIdentity("1.3.6.1.4.1.318.1.1.26.10.2.2.1.7.1"))
       )
       errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
       if errorIndication:
@@ -112,7 +112,7 @@ def store_temperature():
   with app.app_context():
     now = datetime.now()
     temp = get_current_temperature()['temp_f']
-    if temp >= app.config['TEMPERATURE_LIMIT']:
+    if temp != None and temp >= app.config['TEMPERATURE_LIMIT']:
       last_alert = parse_isoformat(get_last_alert(app.config['ALERT_FILE'], now))
       cooldown = timedelta(seconds=app.config['ALERT_COOLDOWN'])
       if cooldown <= now - last_alert:

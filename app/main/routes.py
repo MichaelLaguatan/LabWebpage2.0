@@ -35,6 +35,10 @@ def lab_ip_list():
   db_racks.sort(key=lambda rack: rack.name)
   return render_template('lab_ip_list.jinja2', title='Lab IP List', db_racks=db_racks)
 
+@bp.route('/processors')
+def processors():
+  return render_template('processors.jinja2', title='Processors')
+
 '''
 RACK STUFF
 '''

@@ -17,7 +17,7 @@ class Config:
   DATA_FILE = os.path.join(basedir, 'temperature_history.csv')
   MAX_DAYS = 7
   # Temperature Email Alert Config
-  MAIL_SERVER = ''
+  MAIL_SERVER = 'smtp.gmail.com'
   MAIL_PORT = 587
   MAIL_USE_TLS = True
   MAIL_USE_SSL = False
